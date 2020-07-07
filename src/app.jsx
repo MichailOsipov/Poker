@@ -1,7 +1,8 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
+import {MainPage} from 'components/main'
 
 ReactDOM.render(
-    <div>Hello from poker</div>,
+    <MainPage/>,
     document.getElementById('root')
 );
