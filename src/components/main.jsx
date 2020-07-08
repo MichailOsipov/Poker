@@ -1,97 +1,76 @@
 import * as React from 'react';
-import styled from 'styled-components'
-import { getLanguages, translate, getTextLanguage } from '../utils/api'
+import {connect} from 'react-redux';
+import {MainView} from './main-view'
+import { setOriginalLanguage, setTranslationLanguage, getTranslatedText, getLanguages, translate, getTextLanguage, setOriginalText } from '../store/actions';
 
-const Container = styled.div`
-  padding: 0 20px;
-`
-
-const Block = styled.div`
-  display: flex;
-`
-
-const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 350px;
-  padding-right: 20px;
-`
-
-const Select = styled.select`
-  border: none;
-  height: 20px;
-  margin-bottom: 10px;
-  appearance: none;
-`
-
-const Textarea = styled.textarea`
-  border-color: grey;
-  border-radius: 10px;
-  padding: 5px;
-  min-height: 100px;
-`
-
-const TitleText = styled.h1`
-  font-size: 30px;
-  color: grey;
-`
-
-export class MainPage extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      languages: {},
-      originalLanguage: '',
-      translationLanguage: 'en',
-      originalText: '',
-      translatedText: ''
-    }
+class MainPageComp extends React.Component {
+  componentDidMount() {
+    this.props.getLanguages();
   }
 
-  async componentDidMount() {
-    const languages = await getLanguages();
-    this.setState({languages});
-  }
+  onFieldChange = (field, value) => {
+    let newOriginalLanguage = this.props.originalLanguage;
+    let newOriginalText = this.props.originalText;
+    let newTranslationLanguage = this.props.translationLanguage;
 
-  async onFieldChange(field, value) {
-    await this.setState({[field]: value});
-
-    if (!this.state.originalLanguage) {
-      const originalLanguage = await getTextLanguage(this.state.originalText);
-      this.setState({originalLanguage})
+    switch(field) {
+      case 'originalLanguage':
+        newOriginalLanguage = value;
+        this.props.setOriginalLanguage(value)
+        break
+      case 'originalText':
+        newOriginalText = value;
+        this.props.setOriginalText(value)
+        break
+      case 'translationLanguage':
+        newTranslationLanguage = value;
+        this.props.setTranslationLanguage(value)
+        break
     }
 
-    const translatedText = await translate(this.state.originalText, this.state.originalLanguage, this.state.translationLanguage);
-    this.setState({translatedText})
+    if (!newOriginalLanguage) {
+      this.props.getTextLanguage(newOriginalText);
+    } else if (newOriginalText) {
+      this.props.getTranslatedText(newOriginalText, newOriginalLanguage, newTranslationLanguage);
+    }
   }
 
   render() {
+    const {originalLanguage, translationLanguage, languages, originalText, translatedText} = this.props;
     return (
-      <Container>
-        <TitleText>Translator</TitleText>
-        <Block>
-          <Wrapper>
-            <Select value={this.state.originalLanguage} onChange={(e) => this.onFieldChange('originalLanguage', e.currentTarget.value)}>
-              {Object.keys(this.state.languages).map(key =>
-                <option key={key} value={key}>{this.state.languages[key]}</option>
-              )}
-            </Select>
-            <Textarea
-              placeholder="Введите текст"
-              value={this.state.originalText}
-              onChange={(e) => this.onFieldChange('originalText', e.currentTarget.value)}
-            />
-          </Wrapper>
-          <Wrapper>
-            <Select value={this.state.translationLanguage} onChange={(e) => this.onFieldChange('translationLanguage', e.currentTarget.value)}>
-              {Object.keys(this.state.languages).map(key =>
-                <option key={key} value={key}>{this.state.languages[key]}</option>
-              )}
-            </Select>
-            <Textarea placeholder="Перевод" value={this.state.translatedText} readOnly/>
-          </Wrapper>
-        </Block>
-      </Container>
+      <MainView
+        onFieldChange={this.onFieldChange}
+        originalLanguage={originalLanguage}
+        translationLanguage={translationLanguage}
+        languages={languages}
+        originalText={originalText}
+        translatedText={translatedText}
+      />
     )
   }
 }
+
+const mapStateToProps = state => {
+  return {
+    languages: state.languages,
+    originalLanguage: state.originalLanguage,
+    translationLanguage: state.translationLanguage,
+    originalText: state.originalText,
+    translatedText: state.translatedText
+  }
+}
+
+const mapDispatchToProps = dispatch => {
+  return {
+    setOriginalLanguage: (language) => dispatch(setOriginalLanguage(language)),
+    setTranslationLanguage: (language) => dispatch(setTranslationLanguage(language)),
+    setOriginalText: (text) => dispatch(setOriginalText(text)),
+    getLanguages: () => dispatch(getLanguages()),
+    getTranslatedText: (originalText, originalLanguage, translationLanguage) => dispatch(getTranslatedText(originalText, originalLanguage, translationLanguage)),
+    getTextLanguage: (text) => dispatch(getTextLanguage(text))
+  }
+}
+
+const MainPage = connect(mapStateToProps, mapDispatchToProps)(MainPageComp)
+
+export default MainPage
