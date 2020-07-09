@@ -1,73 +1,74 @@
-import * as React from 'react';
-import {connect} from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import {MainView} from './main-view'
-import { setOriginalLanguage, setTranslationLanguage, getTranslatedText, getLanguages, translate, getTextLanguage, setOriginalText } from '../store/actions';
+import {getLanguages, setOriginalLanguage, setOriginalText, setTranslationLanguage, getTextLanguage, getTranslatedText} from '../store/actions'
 
-class MainPageComp extends React.Component {
-  componentDidMount() {
-    this.props.getLanguages();
+export const MainPage = () => {
+  const languages = useSelector(state => state.languages);
+  const originalLanguage = useSelector(state => state.originalLanguage);
+  const translationLanguage = useSelector(state => state.translationLanguage);
+  const originalText = useSelector(state => state.originalText);
+  const translatedText = useSelector(state => state.translatedText);
+  const dispatch = useDispatch()
+
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    dispatch(getLanguages());
+  }, [])
+
+  const onModalClick = (agree, possibleLanguage = '') => {
+    if (agree) {
+      dispatch(setOriginalLanguage(possibleLanguage));
+      onFieldChange('originalLanguage', possibleLanguage);
+    }
+    setShowModal(false);
   }
 
-  setFieldValue = (field, value) => {
+  const handlePossibleLanguage = async (newOriginalText) => {
+    await dispatch(getTextLanguage(newOriginalText));
+    setShowModal(true);
+
+  }
+
+  const onFieldChange = (field, value) => {
+
+    let newOriginalText = originalText;
+    let newOriginalLanguage = originalLanguage;
+    let newTranslationLanguage = translationLanguage;
+
     switch(field) {
       case 'originalLanguage':
-        this.props.setOriginalLanguage(value)
+        newOriginalLanguage = value;
+        dispatch(setOriginalLanguage(value));
         break
       case 'originalText':
-        this.props.setOriginalText(value)
+        newOriginalText = value;
+        dispatch(setOriginalText(value));
         break
       case 'translationLanguage':
-        this.props.setTranslationLanguage(value)
+        newTranslationLanguage = value;
+        dispatch(setTranslationLanguage(value));
         break
     }
-  }
 
-  onFieldChange = async (field, value) => {
-    await this.setFieldValue(field, value);
-
-    if (!this.props.originalLanguage) {
-      this.props.getTextLanguage(this.props.originalText);
-    } else if (this.props.originalText) {
-      this.props.getTranslatedText(this.props.originalText, this.props.originalLanguage, this.props.translationLanguage);
+    if (!newOriginalLanguage) {
+      handlePossibleLanguage(newOriginalText);
+    } else if (newOriginalText) {
+      dispatch(getTranslatedText(newOriginalText, newOriginalLanguage, newTranslationLanguage));
     }
   }
 
-  render() {
-    const {originalLanguage, translationLanguage, languages, originalText, translatedText} = this.props;
-    return (
-      <MainView
-        onFieldChange={this.onFieldChange}
-        originalLanguage={originalLanguage}
-        translationLanguage={translationLanguage}
-        languages={languages}
-        originalText={originalText}
-        translatedText={translatedText}
-      />
-    )
-  }
+  return (
+    <MainView
+      onFieldChange={onFieldChange}
+      originalLanguage={originalLanguage}
+      translationLanguage={translationLanguage}
+      languages={languages}
+      originalText={originalText}
+      translatedText={translatedText}
+      onModalClick={onModalClick}
+      showModal={showModal}
+    />
+  )
 }
-
-const mapStateToProps = state => {
-  return {
-    languages: state.languages,
-    originalLanguage: state.originalLanguage,
-    translationLanguage: state.translationLanguage,
-    originalText: state.originalText,
-    translatedText: state.translatedText
-  }
-}
-
-const mapDispatchToProps = dispatch => {
-  return {
-    setOriginalLanguage: (language) => dispatch(setOriginalLanguage(language)),
-    setTranslationLanguage: (language) => dispatch(setTranslationLanguage(language)),
-    setOriginalText: (text) => dispatch(setOriginalText(text)),
-    getLanguages: () => dispatch(getLanguages()),
-    getTranslatedText: (originalText, originalLanguage, translationLanguage) => dispatch(getTranslatedText(originalText, originalLanguage, translationLanguage)),
-    getTextLanguage: (text) => dispatch(getTextLanguage(text))
-  }
-}
-
-const MainPage = connect(mapStateToProps, mapDispatchToProps)(MainPageComp)
-
-export default MainPage

@@ -6,6 +6,7 @@ export const SET_ORIGINAL_LANGUAGE = 'SET_ORIGINAL_LANGUAGE';
 export const SET_TRANSLATION_LANGUAGE = 'SET_TRANSLATION_LANGUAGE ';
 export const SET_ORIGINAL_TEXT = 'SET_ORIGINAL_TEXT';
 export const SET_TRANSLATED_TEXT = 'SET_TRANSLATED_TEXT';
+export const SET_POSSIBLE_LANGUAGE = 'SET_POSSIBLE_LANGUAGE';
 
 export const setOriginalLanguage = (language) => (
  {
@@ -51,8 +52,7 @@ export const getTranslatedText = (originalText, originalLanguage, translationLan
 export const getTextLanguage = (text) => async (dispatch) => {
   try {
     const info = await fetchLanguage(text);
-    console.log('info', info)
-    dispatch({ type: SET_ORIGINAL_LANGUAGE, payload: info.lang })
+    dispatch({ type: SET_POSSIBLE_LANGUAGE, payload: info.lang })
   }
   catch(error) {
     console.log(error)

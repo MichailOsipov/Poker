@@ -3,7 +3,8 @@ import {
   SET_ORIGINAL_LANGUAGE,
   SET_TRANSLATION_LANGUAGE,
   SET_ORIGINAL_TEXT,
-  SET_TRANSLATED_TEXT
+  SET_TRANSLATED_TEXT,
+  SET_POSSIBLE_LANGUAGE
 } from './actions'
 
 const initialState = {
@@ -11,7 +12,8 @@ const initialState = {
   originalLanguage: '',
   translationLanguage: 'en',
   originalText: '',
-  translatedText: ''
+  translatedText: '',
+  possibleLanguage: ''
 }
 
 export function rootReducer(state = initialState, action) {
@@ -40,6 +42,11 @@ export function rootReducer(state = initialState, action) {
       return {
         ...state,
         translatedText: action.payload
+      }
+    case SET_POSSIBLE_LANGUAGE:
+      return {
+        ...state,
+        possibleLanguage: action.payload
       }
     default:
       return state;
