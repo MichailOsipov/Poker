@@ -6,7 +6,7 @@ const proxyPort = 8088;
 
 module.exports = {
     context: __dirname + '/src',
-    entry: ['babel-polyfill', './main.jsx'],
+    entry: ['babel-polyfill', './app.jsx'],
     output: {
         filename: 'bundle.js',
         path: __dirname + '/public',
